@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">FileDownloader</string>
+    <string name="start_download">Start DownLoad</string>
+    <string name="install_apk">installApk</string>
+    <string name="process">process: 0</string>
+    <string name="wait">wait</string>
+</resources>
