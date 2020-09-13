@@ -2,13 +2,12 @@ package com.example.coroutinedemo.net
 
 import android.util.Log
 import com.example.coroutinedemo.uitls.LocalFileUtil
+import com.example.coroutinedemo.uitls.ToastUtils
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import okhttp3.ResponseBody
-import retrofit2.Response
-import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 import java.lang.Exception
@@ -58,14 +57,13 @@ object DownLoader {
     }
 
     private suspend fun downLoadFileFromNet(url: String, emitProgress: SuspendFun<Float, Unit>) {
-        val file = getDownLoadFile(url)
-        val response: Response<ResponseBody> = NetService.getInstance().downloadFile(url).execute()
+        val response = NetService.getInstance().downloadFile(url).execute()
         if (!response.isSuccessful) dealFail().also { return }
-        val body: ResponseBody? = response.body()
-        body?.use {
-            val contentLength = body.contentLength()
+        response.body()?.use {
+            val contentLength = it.contentLength()
             try {
-                val inStream: InputStream = body.byteStream()
+                val inStream: InputStream = it.byteStream()
+                val file = LocalFileUtil.getLocalFile(url)
                 val outStream: FileOutputStream = file.outputStream()
                 var currentLength = 0L
 
@@ -93,10 +91,6 @@ object DownLoader {
     private suspend fun dealFail() {
         withContext(Dispatchers.Main) { fail?.invoke() }
         cancel()
-    }
-
-    private fun getDownLoadFile(url: String): File {
-        return File(LocalFileUtil.INSTANCE.getDownloadFilePath(), url)
     }
 
     private fun cancel() {

@@ -1,25 +1,28 @@
 package com.example.coroutinedemo
 
+import android.annotation.SuppressLint
+import android.os.Bundle
 import android.view.View
-import android.widget.Toast
 import com.example.coroutinedemo.net.DownLoader
-import com.example.coroutinedemo.uitls.ApkInstallUtil
-import com.example.coroutinedemo.uitls.LocalFileUtil
-import com.example.coroutinedemo.uitls.NotificationUtils
-import com.example.coroutinedemo.uitls.ToastUtils
+import com.example.coroutinedemo.net.NetService
+import com.example.coroutinedemo.uitls.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.Job
 
 
 class MainActivity : BaseActivity(), DownLoadState {
-    //    var url = "jingdutianxia5.2.2pj_2265.com.apk"
-    //    var url = "2020-9-7/983fdff24a73ad4G2RG4LYDCyhDeuA.apk"
-    //    var url = "moonreaderprowmpjmodzsb.apk"
-    var url = "F-Droid.apk"
+    private var url = "F-Droid.apk"
 
     private val fileProcessJob: Job = Job()
 
     override fun getResId(): Int = R.layout.activity_main
+
+    @SuppressLint("SetTextI18n")
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        etUrl.setText( NetService.baseUrl + url)
+        etUrl.isEnabled = false
+    }
 
     override fun onDestroy() {
         super.onDestroy()
@@ -31,8 +34,9 @@ class MainActivity : BaseActivity(), DownLoadState {
         DownLoader.downLoadWithProgress(fileProcessJob, url)
             .start {
                 startState()
-                NotificationUtils.showNotification(this, "file download", url)
+                NotificationUtils.showNotification(this, null, url)
             }.progress {
+                progressState(it)
                 NotificationUtils.updateNotificationProgress(it)
             }.done {
                 doneState()
@@ -55,13 +59,14 @@ class MainActivity : BaseActivity(), DownLoadState {
 
     override fun doneState() {
         btnDownload.isClickable = true
-        btnInstall.visibility = View.VISIBLE
+        cvInstall.visibility = View.VISIBLE
+        tvFileName.text = UrlUtils.getFileNameFromUrl(url)
         NotificationUtils.cancelNotification()
     }
 
     override fun failState() {
         btnDownload.isClickable = true
-        btnInstall.visibility = View.GONE
+        cvInstall.visibility = View.GONE
         tvProcess.text = "0"
         btnDownload.text = resources.getText(R.string.start_download)
     }

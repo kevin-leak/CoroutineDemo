@@ -17,9 +17,9 @@ interface NetService {
     fun downloadFile(@Url url: String): Call<ResponseBody>
 
     companion object {
-//        private const val baseUrl: String = "http://a.downpp.com/apk5/"
+        //        private const val baseUrl: String = "http://a.downpp.com/apk5/"
 //        private const val baseUrl: String = "https://github.com/kevin-leak/CoroutineDemo/tree/master/art/"
-        private const val baseUrl: String = "https://f-droid.org/"
+         const val baseUrl: String = "https://f-droid.org/"
 
         @Volatile
         private var instance: NetService? = null
@@ -32,5 +32,22 @@ interface NetService {
                 .also { instance = it }
         }
     }
-
 }
+
+//}
+//import okhttp3.Call
+//import okhttp3.OkHttpClient
+//import okhttp3.Request
+
+//object NetService {
+//    var okHttpClient = OkHttpClient()
+//
+//    fun downloadFile(url: String): Call {
+//        val request: Request = Request.Builder()
+//            .addHeader("Accept-Encoding", "identity")
+//            .url(url)
+//            .build()
+//        return okHttpClient.newCall(request)
+//    }
+
+//}
