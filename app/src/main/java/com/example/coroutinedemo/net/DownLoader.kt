@@ -1,5 +1,6 @@
 package com.example.coroutinedemo.net
 
+import android.util.Log
 import com.example.coroutinedemo.uitls.LocalFileUtil
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
@@ -44,7 +45,6 @@ object DownLoader {
         return this
     }
 
-
     fun downLoadWithProgress(job: Job, url: String): DownLoader {
         fileProcessJob = job
         uiScope = CoroutineScope(Dispatchers.Main + fileProcessJob)
@@ -63,19 +63,25 @@ object DownLoader {
         if (!response.isSuccessful) dealFail().also { return }
         val body: ResponseBody? = response.body()
         body?.use {
+            val contentLength = body.contentLength()
             try {
                 val inStream: InputStream = body.byteStream()
                 val outStream: FileOutputStream = file.outputStream()
-                val contentLength: Long = body.contentLength()
                 var currentLength = 0L
 
                 val buff = ByteArray(1024)
                 var len: Int = inStream.read(buff)
+                var percent: Float = -0.1f
 
                 while (len != -1) {
                     outStream.write(buff, 0, len)
-                    currentLength += inStream.read(buff)
-                    emitProgress(currentLength * 1.0F / contentLength)
+                    currentLength += len
+                    val tmp: Float = currentLength * 1.0F / contentLength
+                    if (percent < tmp) {
+                        percent = tmp
+                        emitProgress(percent)
+                    }
+                    len = inStream.read(buff)
                 }
             } catch (e: Exception) {
                 dealFail().also { return }
@@ -93,7 +99,7 @@ object DownLoader {
         return File(LocalFileUtil.INSTANCE.getDownloadFilePath(), url)
     }
 
-    fun cancel() {
+    private fun cancel() {
         if (fileProcessJob.isActive) fileProcessJob.cancel()
     }
 

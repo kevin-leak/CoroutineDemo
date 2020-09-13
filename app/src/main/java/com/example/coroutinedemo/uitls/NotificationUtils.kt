@@ -1,23 +1,32 @@
 package com.example.coroutinedemo.uitls
 
+import android.app.Notification
+import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.example.coroutinedemo.R
 
 
 object NotificationUtils {
 
-    fun isPermissionOpen(context: Context): Boolean {
+    private lateinit var notification: Notification
+    private lateinit var builder: NotificationCompat.Builder
+    private lateinit var notificationManager: NotificationManager
+
+    private fun isPermissionOpen(context: Context): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationManagerCompat.from(context).importance != NotificationManager.IMPORTANCE_NONE
         } else NotificationManagerCompat.from(context).areNotificationsEnabled()
     }
 
-    fun openPermissionSetting(context: Context) {
+    private fun openPermissionSetting(context: Context) {
         try {
             val localIntent = Intent()
             localIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -60,5 +69,41 @@ object NotificationUtils {
             e.printStackTrace()
             println(" cxx   pushPermission 有问题")
         }
+    }
+
+    fun updateNotificationProgress(it: Float) {
+        builder.setProgress(100, (it * 100).toInt(), false)
+        notification = builder.build()
+        notificationManager.notify(1, notification)
+    }
+
+
+    fun showNotification(context: Context, title: String?, msg: String?) {
+        if (!isPermissionOpen(context)) {
+            openPermissionSetting(context)
+            return
+        }
+        notificationManager =
+            context.getSystemService(AppCompatActivity.NOTIFICATION_SERVICE) as NotificationManager
+        if (Build.VERSION.SDK_INT >= 26) {
+            val channel = NotificationChannel("id", "name", NotificationManager.IMPORTANCE_LOW)
+            notificationManager.createNotificationChannel(channel)
+            builder = NotificationCompat.Builder(context, "id")
+            builder.setContentTitle(title)
+                .setContentText(msg)
+                .setSmallIcon(R.drawable.ic_download)
+        } else {
+            builder = NotificationCompat.Builder(context)
+                .setContentTitle(title)
+                .setContentText(msg)
+                .setSmallIcon(R.drawable.ic_download)
+        }
+        builder.setProgress(100, 0, false)
+        notification = builder.build()
+        notificationManager.notify(1, builder.build())
+    }
+
+    fun cancelNotification() {
+        notificationManager.cancel(1)
     }
 }

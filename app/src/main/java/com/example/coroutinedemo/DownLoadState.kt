@@ -1,8 +1,8 @@
 package com.example.coroutinedemo
 
-interface DownLoadState{
-    fun  startState()
-    fun  progressState()
-    fun  doneState()
-    fun  failState()
+interface DownLoadState {
+    fun startState()
+    fun progressState(process: Float)
+    fun doneState()
+    fun failState()
 }
